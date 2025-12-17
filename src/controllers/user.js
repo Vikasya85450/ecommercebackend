@@ -26,7 +26,7 @@ try {
     };
 
 const hp = await hashPassword(password);
-console.log(hp);
+
 const user= new User ({
     name,
     email,

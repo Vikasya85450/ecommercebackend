@@ -4,6 +4,7 @@ import UserRouter from './routes/user.js'
 import dbConnect from './config/db.js';
 import cors from 'cors'
 import categoryRouter from './routes/category.js'
+import productRouter from './routes/product.js'
 import cloudinary from 'cloudinary'
 
 const app=express();
@@ -28,6 +29,7 @@ app.use(morgan('dev'))
 
 app.use('/api/user',UserRouter);
 app.use('/api',categoryRouter)
+app.use('/api',productRouter)
 
 app.get("/health",(req,res)=>{
     res.json({

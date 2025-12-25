@@ -9,7 +9,7 @@ import cloudinary from 'cloudinary'
 
 const app=express();
 
-const Port=process.env.PORT || 4000;
+const Port=8080;
 
 // middlewares
 dbConnect();

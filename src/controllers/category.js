@@ -103,6 +103,7 @@ export const deleteCatogry = async (req, res) => {
   }
 }
 
+
 export const editCatogry = async (req, res) => {
   try {
     const { name, id } = req.body;
@@ -114,10 +115,6 @@ export const editCatogry = async (req, res) => {
       })
     }
     const file = req.file;
-
-
-
-
     if (file) {
       const item = await Category.findById(id);
       const imageDeleted = await cloudinary.uploader.destroy(item?.image_id);
@@ -129,7 +126,6 @@ export const editCatogry = async (req, res) => {
         }
       );
 
-
       if (cloud) {
         const result = await Category.findByIdAndUpdate(id, {
           name,
@@ -139,17 +135,10 @@ export const editCatogry = async (req, res) => {
         })
       }
 
-
-
-
       return res.status(202).json({
         status: "Success",
         message: "Edit Successfully"
       });
-
-
-
-
 
     } else {
       const result = await Category.findByIdAndUpdate(id, {
@@ -163,10 +152,6 @@ export const editCatogry = async (req, res) => {
       });
 
     }
-
-
-
-
   } catch (error) {
     console.error("edit category error:", error);
     res.status(500).json({

@@ -117,3 +117,28 @@ res.status(200).json({
     }    
  
     }
+    
+export const usedetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+
+    if (!user) {
+      return res.status(404).json({
+        status: "error",
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "User found successfully",
+      user,
+    });
+  } catch (error) {
+    console.log("user details error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Server error",
+    });
+  }
+};

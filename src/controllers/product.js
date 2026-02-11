@@ -68,15 +68,10 @@ export const getProduct = async (req, res) => {
      }else{
       result = await Product.find().populate("category");
      }
-
-
-
-    
     return res.status(200).json({
       status: true,
       result
     })
-
 
   } catch (error) {
 
@@ -131,17 +126,9 @@ export const getProduct = async (req, res) => {
 // }
 export const deleteProduct = async (req, res) => {
   try {
-    const { id } = req.body; // ✅ use id OR _id (be consistent)
-
-    if (!id) {
-      return res.status(400).json({
-        status: "error",
-        message: "Product ID is required"
-      });
-    }
 
     // ✅ Find product
-    const product = await Product.findById(id);
+    const product = await Product.findById(req.params.id);
 
     if (!product) {
       return res.status(404).json({
@@ -157,7 +144,7 @@ export const deleteProduct = async (req, res) => {
     }
 
     // ✅ Delete product from DB
-    await Product.findByIdAndDelete(id);
+    await Product.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       status: "success",
@@ -173,58 +160,79 @@ export const deleteProduct = async (req, res) => {
     });
   }
 };
-
-
-export const editProduoct = async (req, res) => {
+export const updateProduct = async (req, res) => {
   try {
-    const { title, id } = req.body;
+    const { id } = req.params;
+    const { title, description, brand, price, discount, stock } = req.body;
 
-    if (!title) {
-      return res.status(400).json({
-        success: "false",
-        message: "title is required"
-      })
+    if (!id) {
+      return res.status(400).json({ message: "Product id required" });
     }
-    const file = req.file;
-    if (file) {
-      const product = await Category.findById(id);
-      const imageDeleted = await cloudinary.uploader.destroy(product?.image_id);
-      const fileBuffer = getDataUrl(file);
+
+    let updateData = {};
+
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (brand) updateData.brand = brand;
+    if (price) updateData.price = price;
+    if (discount) updateData.discount = discount;
+    if (stock) updateData.stock = stock;
+
+    if (req.file) {
+      const fileBuffer = getDataUrl(req.file);
       const cloud = await cloudinary.v2.uploader.upload(
         fileBuffer.content,
-        {
-          folder: "products"
-        }
+        { folder: "products" }
       );
 
-      if (cloud) {
-        const result = await Category.findByIdAndUpdate(id, {
-          name,
-          image: cloud.secure_url,
-          image_id: cloud.public_id
-
-        })
-      }
-
-      return res.status(202).json({
-        status: "Success",
-        message: "Edit Successfully"
-      });
-
-    } else {
-      const result = await Category.findByIdAndUpdate(id, {
-        name
-      })
-
-      res.status(202).json({
-        status: "Success",
-        message: "Edit Successfully",
-        result
-      });
-
+      updateData.image = cloud.secure_url;
+      updateData.image_id = cloud.public_id;
     }
+
+    const product = await Product.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Product updated",
+      data: product,
+    });
+
   } catch (error) {
-    console.error("edit category error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+     
+
+export const showproduct = async (req, res) => {
+  try {
+
+
+    let result; 
+      result = await Product.findById(req.params.id);
+
+    if (!result) {
+      return res.status(404).json({
+        status: "error",
+        message: "Product not found"
+      });
+      
+    }
+     res.status(200).json({
+      status: true,
+      result
+    })
+
+  } catch (error) {
+
+    console.error("get product error:", error);
     res.status(500).json({
       status: "error",
       message: "Server error"
@@ -232,3 +240,32 @@ export const editProduoct = async (req, res) => {
   }
 }
 
+ export const searchproduct = async (req, res) => {
+  try {
+
+    
+   var search =req.query.query;
+    
+    const product = await Product.find({
+      title:{$regex: ".*" +search+ ".*",$options:"i"}
+    });
+     
+    if (product.length<= 0) {
+      return res.status(200).json({
+        status: "success",
+        message: "Product not found"
+      })}
+
+     res.status(200).json({
+      status: true,
+      message:"product found successfully",
+      product
+    })} catch (error) {
+
+    console.error("get product error:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Server error"
+    });
+  }
+}

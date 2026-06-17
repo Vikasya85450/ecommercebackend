@@ -213,32 +213,40 @@ export const updateProduct = async (req, res) => {
 
 export const showproduct = async (req, res) => {
   try {
-
-
-    let result; 
-      result = await Product.findById(req.params.id);
+    // ✅ 1. Get single product with category details
+    const result = await Product.findById(req.params.id)
+      .populate("category");
 
     if (!result) {
       return res.status(404).json({
         status: "error",
         message: "Product not found"
       });
-      
     }
-     res.status(200).json({
-      status: true,
-      result
+
+    // ✅ 2. Find related products (same category)
+    const relatedProducts = await Product.find({
+      category: result.category._id, // use category ID
+      _id: { $ne: result._id }       // exclude current product
     })
+      .populate("category")          // optional
+      .limit(5);                     // optional limit
+
+    // ✅ 3. Send response
+    res.status(200).json({
+      status: true,
+       result,
+      relatedProducts
+    });
 
   } catch (error) {
-
     console.error("get product error:", error);
     res.status(500).json({
       status: "error",
       message: "Server error"
     });
   }
-}
+};
 
  export const searchproduct = async (req, res) => {
   try {

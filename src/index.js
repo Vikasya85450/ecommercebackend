@@ -5,7 +5,15 @@ import dbConnect from './config/db.js';
 import cors from 'cors'
 import categoryRouter from './routes/category.js'
 import productRouter from './routes/product.js'
+import addressRoute from './routes/address.js'
+import orderRouter from './routes/order.js'
+import reviewRouter from './routes/review.js'
+import giftRouter from './routes/Giftcard.js'
 import cloudinary from 'cloudinary'
+
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const app=express();
 
@@ -28,8 +36,12 @@ app.use(morgan('dev'))
 // all routes
 
 app.use('/api/user',UserRouter);
-app.use('/api',categoryRouter)
-app.use('/api',productRouter)
+app.use('/api',categoryRouter);
+app.use('/api',productRouter);
+app.use('/api',addressRoute);
+app.use('/api',orderRouter);
+app.use('/api',reviewRouter);
+app.use('/',giftRouter);
 
 app.get("/health",(req,res)=>{
     res.json({

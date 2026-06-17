@@ -3,64 +3,62 @@ import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import { hashPassword, isMatched, tokenGenerator } from "../utils/index.js";
 
+export const SignUp = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
 
-export const SignUp = async(req,res)=>{
-try {
-    const {name,email,password}=req.body;
-    
-    
-    if(!email|| !name ||!password){
-        res.status(400).json({
-            status:'error',
-            message:"All field required"
-        });
-    };
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        status: "error",
+        message: "All fields required",
+      });
+    }
 
     const userExist = await User.findOne({ email });
 
-    if(userExist){
-        res.status(400).json({
-            status:'error',
-            message:"duplicate not allowed"
-        }); 
+    if (userExist) {
+      return res.status(400).json({
+        status: "error",
+        message: "Email already exists",
+      });
+    }
+
+    const hp = await hashPassword(password);
+
+    const user = new User({
+      name,
+      email,
+      password: hp,
+    });
+
+    const result = await user.save();
+
+    const payload = {
+      id: result._id,
+      email: result.email,
     };
 
-const hp = await hashPassword(password);
+    const token = tokenGenerator(payload);
 
-const user= new User ({
-    name,
-    email,
-    password:hp
-});
-const result = await user.save();
-const payload={
-    id:result._id,
-    email:result.email
+    return res.status(201).json({
+      status: "success",
+      message: "User created successfully",
+      token,
+      user: {
+        id: result._id,
+        email: result.email,
+        role: result.role,
+      },
+    });
+  } catch (error) {
+    console.log("signup error:", error);
+
+    return res.status(500).json({
+      status: "error",
+      message: "Server error",
+    });
+  }
 };
-const token =tokenGenerator(payload)
-
-res.status(201).json({
-    status:"Success",
-    meassage :"user created succesfully ",
-    token,
-    user:{
-email:result.email,
-    id:result._id,
-    role:result.role
-    }
-    
-
-
-})
-
-} catch (error) {
-    console.log("signup error :",error);
-     res.status(500).json({
-            status:'error',
-            message:"server error"
-        }); 
-    }    
-}
 
 export const SignIn =async(req,res)=>{
     try {
@@ -89,7 +87,8 @@ export const SignIn =async(req,res)=>{
                 message:"password invalid"
             })
          }
-
+         console.log(iM);
+         
          const payload={
     id:userExist._id,
     email:userExist.email

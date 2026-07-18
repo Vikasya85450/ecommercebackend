@@ -2,41 +2,46 @@ import Review from "../models/review.js";
 
 export const postreview = async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({
-        status: "error",
-        message: "Authentication required",
-      });
-    }
+    const userId = req.user.id;
+    const { productId } = req.params;
+    const { rating, comment } = req.body.review || req.body;
 
-    const reviewData = req.body.review || req.body;
-    const { product, rating, comment } = reviewData;
-
-    if (!product || !rating || !comment) {
+    if (!rating || !comment) {
       return res.status(400).json({
         status: "error",
-        message: "Product, rating and comment are required",
+        message: "Rating and comment are required",
       });
     }
 
-    const newReview = new Review({
-      rating,
-      comment,
+    // Check if user has already reviewed this product
+    const existingReview = await Review.findOne({
       user: userId,
-      product,
+      product: productId,
     });
 
-    await newReview.save();
+    if (existingReview) {
+      return res.status(400).json({
+        status: "error",
+        message: "You have already reviewed this product.",
+      });
+    }
+
+    const newReview = await Review.create({
+      user: userId,
+      product: productId,
+      rating,
+      comment,
+    });
 
     return res.status(201).json({
       status: true,
-      message: "Review created",
+      message: "Review added successfully",
       review: newReview,
     });
   } catch (error) {
-    console.error("post error:", error);
-    res.status(500).json({
+    console.error("Add review error:", error);
+
+    return res.status(500).json({
       status: "error",
       message: "Server error",
     });
@@ -118,22 +123,24 @@ export const deleteReview = async (req, res) => {
     });
   }
 };
-
 export const getreview = async (req, res) => {
   try {
-    const review = await Review.find()
+    const { productId } = req.params;
+
+    const reviews = await Review.find({ product: productId })
       .populate("user", "name")
+      .sort({ createdAt: -1 })
       .lean();
 
     return res.status(200).json({
       status: true,
-      message: "All reviews fetched",
-      review,
+      message: "Reviews fetched successfully",
+      reviews,
     });
   } catch (error) {
-    console.log("🔥 ERROR:", error);
+    console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       status: "error",
       message: "Server error",
     });

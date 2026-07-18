@@ -3,7 +3,10 @@ import Order from "../models/order.js";
 export const orderplace = async (req, res) => {
   try {
     const { items, address, totalAmount, paymentMethod, paymentStatus } = req.body;
-   
+     const userId = req.user.id;
+     console.log(id);
+     
+    
     
 
     // ✅ Validation
@@ -24,6 +27,7 @@ export const orderplace = async (req, res) => {
     // ✅ Store items with image (no upload)
     const formattedItems = items.map((item) => ({
       productId: item.productId,
+
       name: item.name || "Product",
       price: item.price || 0,
       quantity: item.quantity || 1,
@@ -31,7 +35,7 @@ export const orderplace = async (req, res) => {
     }));
 
     const order = await Order.create({
-      userId: req.user?.id || "65f1a2b3c4d5e6f789012300",
+     user: userId ,
       items: formattedItems,
       address,
       totalAmount,
@@ -56,22 +60,26 @@ export const orderplace = async (req, res) => {
   }
 };
 
-export const showOrder = async (req ,res)=>{
-try {
+export const showOrder = async (req, res) => {
+  try {
+    const userId = req.user.id;
 
-    const order = await Order.find();
-    // const orders = await Order.find({ userId }).populate("items.productId");
+  
 
-     res.status(200).json({
+    const orders = await Order.find({ user: userId })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
       success: true,
-      data: order
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message
+      data: orders,
     });
 
-    
-} 
-}
+  } catch (error) {
+    console.error("Show order error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};

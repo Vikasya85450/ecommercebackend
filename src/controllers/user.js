@@ -184,7 +184,7 @@ export const forgotPassword = async (req, res) => {
     }
 
     const otp = generateOtp();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    const otpExpires = new Date(Date.now() + 20 * 60 * 1000);
     user.otp = await hashPassword(otp);
     user.otpExpires = otpExpires;
     await user.save();
@@ -246,9 +246,9 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    user.otp = null;
-    user.otpExpires = null;
-    await user.save();
+    // user.otp = null;
+    // user.otpExpires = null;
+    // await user.save();
 
     return res.status(200).json({
       status: "success",

@@ -4,8 +4,8 @@ import { isAuthenticated } from '../utils/index.js';
 
 const router = express.Router();
 
-router.post('/review', isAuthenticated, postreview)
-router.get('/review', getreview)
+router.post("/review/:productId", isAuthenticated, postreview);
+router.get("/review/:productId", getreview);
 router.patch('/review/:id', isAuthenticated, updateReview)
 router.delete('/review/:id', isAuthenticated, deleteReview)
 

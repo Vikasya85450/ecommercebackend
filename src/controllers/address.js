@@ -3,6 +3,10 @@ import Address from "../models/address.js";
 
 export const addAddress = async (req, res) => {
   try {
+    const userId = req.user.id;
+   
+    
+
     const {
       name,
       phone,
@@ -11,12 +15,11 @@ export const addAddress = async (req, res) => {
       city,
       street,
       landmark,
-      type
+      type,
     } = req.body;
-    
-    console.log("req sent");
-    
-    const address = new Address({
+
+    const address = await Address.create({
+      user: userId, // Save the logged-in user
       name,
       phone,
       pincode,
@@ -24,41 +27,41 @@ export const addAddress = async (req, res) => {
       city,
       street,
       landmark,
-      type
+      type,
     });
 
-    const savedAddress = await address.save();
-
-    res.status(201).json({
+    return res.status(201).json({
       status: "success",
       message: "Address added successfully",
-      data: savedAddress
+      address,
     });
-
   } catch (error) {
-    console.error("add address error:", error);
+    console.error("Add address error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       status: "error",
-      message: "Server error"
+      message: "Server error",
     });
   }
 };
 
-export const getaddress = async (req,res)=>{
-    try {
-        const address =await Address.find();
-        console.log(address);
-        
-        res.status(200).json({
+export const getaddress = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    
+const address = await Address.find({ user: req.user.id });
+    res.status(200).json({
       status: "success",
-      message: "All Category",
-      address
+      message: "Addresses fetched successfully",
+      address,
     });
-    } catch (error) {
-        res.status(500).json({
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
       status: "error",
-      message: "Server error"
+      message: "Server error",
     });
-    }
-}
+  }
+};

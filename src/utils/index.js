@@ -3,24 +3,23 @@ import jwt from "jsonwebtoken";
 
 
 
-export const hashPassword =async(password)=>{
-const hp = await bcrypt.hash(password,10)
-return hp;
-}
+export const hashPassword = async (password) => {
+  return bcrypt.hash(password, 10);
+};
 
-export const tokenGenerator = (payload)=>{
-const token = jwt.sign(payload ,process.env.JWT_SECRET,{
-    expiresIn:"15d",
-});
-return token; 
-}
+export const tokenGenerator = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: "15d",
+  });
+};
 
-export const isMatched = async(password,dbpassword)=>{
-const result = await bcrypt.compare(password,dbpassword)
-return result;
-}
+export const isMatched = async (password, dbpassword) => {
+  return bcrypt.compare(password, dbpassword);
+};
 
-
+export const generateOtp = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 
 export const isAuthenticated = (req, res, next) => {
   try {

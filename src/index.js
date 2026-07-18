@@ -9,6 +9,7 @@ import addressRoute from './routes/address.js'
 import orderRouter from './routes/order.js'
 import reviewRouter from './routes/review.js'
 import giftRouter from './routes/Giftcard.js'
+import paymentRouter from './routes/paymemnt.js'
 import cloudinary from 'cloudinary'
 
 
@@ -41,6 +42,7 @@ app.use('/api',productRouter);
 app.use('/api',addressRoute);
 app.use('/api',orderRouter);
 app.use('/api',reviewRouter);
+app.use('/api/payment', paymentRouter);
 app.use('/',giftRouter);
 
 app.get("/health",(req,res)=>{

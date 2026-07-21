@@ -1,15 +1,28 @@
 import Order from "../models/order.js";
 
+const normalizePaymentMethod = (paymentMethod) => {
+  const value = (paymentMethod || "COD").toString().trim().toLowerCase();
+
+  if (["online", "online payment", "card", "upi", "qr", "wallet"].includes(value)) {
+    return "ONLINE";
+  }
+
+  return "COD";
+};
+
 export const orderplace = async (req, res) => {
   try {
-    const { items, address, totalAmount, paymentMethod, paymentStatus } = req.body;
-     const userId = req.user.id;
-     console.log(id);
-     
-    
-    
+    const payload = req.body?.order || req.body;
+    const { items, address, totalAmount, paymentMethod, paymentStatus } = payload;
+    const userId = req.user?.id;
 
-    // ✅ Validation
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Authentication required",
+      });
+    }
+
     if (!items || items.length === 0) {
       return res.status(400).json({
         success: false,
@@ -17,30 +30,31 @@ export const orderplace = async (req, res) => {
       });
     }
 
-    if (!address || !totalAmount || !paymentMethod) {
+    if (!address || !totalAmount) {
       return res.status(400).json({
         success: false,
-        message: "All fields are required!",
+        message: "Address and total amount are required!",
       });
     }
 
-    // ✅ Store items with image (no upload)
+    const normalizedPaymentMethod = normalizePaymentMethod(paymentMethod);
+    const normalizedPaymentStatus = paymentStatus || (normalizedPaymentMethod === "ONLINE" ? "paid" : "pending");
+
     const formattedItems = items.map((item) => ({
       productId: item.productId,
-
       name: item.name || "Product",
       price: item.price || 0,
       quantity: item.quantity || 1,
-      image: item.image || "", // 🔥 directly store Cloudinary URL
+      image: item.image || "",
     }));
 
     const order = await Order.create({
-     user: userId ,
+      user: userId,
       items: formattedItems,
       address,
       totalAmount,
-      paymentMethod,
-      paymentStatus: paymentStatus || "pending",
+      paymentMethod: normalizedPaymentMethod,
+      paymentStatus: normalizedPaymentStatus,
       orderStatus: "placed",
     });
 
@@ -49,7 +63,6 @@ export const orderplace = async (req, res) => {
       message: "Order placed successfully!",
       order,
     });
-
   } catch (error) {
     console.error("order error:", error);
 
@@ -64,7 +77,7 @@ export const showOrder = async (req, res) => {
   try {
     const userId = req.user.id;
 
-  
+
 
     const orders = await Order.find({ user: userId })
       .sort({ createdAt: -1 });

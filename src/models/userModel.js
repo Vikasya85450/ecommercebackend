@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
         enum: ["user", "admin"],
         default: "user"
     },
+    isBanned: {
+        type: Boolean,
+        default: false
+    },
     otp: {
         type: String,
         default: null

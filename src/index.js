@@ -10,7 +10,9 @@ import orderRouter from './routes/order.js'
 import reviewRouter from './routes/review.js'
 import giftRouter from './routes/Giftcard.js'
 import paymentRouter from './routes/paymemnt.js'
+import adminRouter from './routes/admin.js'
 import cloudinary from 'cloudinary'
+import './config/redis.js'
 
 
 import dotenv from "dotenv";
@@ -18,7 +20,7 @@ dotenv.config();
 
 const app=express();
 
-const Port=8080;
+const Port=process.env.PORT || 8080;
 
 // middlewares
 dbConnect();
@@ -43,6 +45,7 @@ app.use('/api',addressRoute);
 app.use('/api',orderRouter);
 app.use('/api',reviewRouter);
 app.use('/api/payment', paymentRouter);
+app.use('/api/admin', adminRouter);
 app.use('/',giftRouter);
 
 app.get("/health",(req,res)=>{

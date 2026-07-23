@@ -1,6 +1,8 @@
 import Category from "../models/category.js";
 import { getDataUrl } from "../utils/buffer.js";
 import cloudinary from "cloudinary";
+import { logActivity } from "../utils/activityLogger.js";
+import { cacheGet, cacheSet, cacheDelPattern } from "../config/redis.js";
 
 
 export const addCategory = async (req, res) => {
@@ -32,6 +34,13 @@ export const addCategory = async (req, res) => {
     const result = await x.save();
     console.log(result);
 
+    await cacheDelPattern("categories:*");
+    await logActivity({
+      actor: req.user,
+      action: `added category "${result.name}"`,
+      target: "category",
+      targetId: result._id,
+    });
 
     res.status(200).json({
       status: "success",
@@ -49,7 +58,17 @@ export const addCategory = async (req, res) => {
 };
 export const getAllCatogry = async (req, res) => {
   try {
+    const cached = await cacheGet("categories:all");
+    if (cached) {
+      return res.status(200).json({
+        status: "success",
+        message: "All Category",
+        result: cached
+      });
+    }
+
     const result = await Category.find();
+    await cacheSet("categories:all", result, 300);
 
     res.status(200).json({
       status: "success",
@@ -87,6 +106,13 @@ export const deleteCatogry = async (req, res) => {
       console.log(result);
     }
 
+    await cacheDelPattern("categories:*");
+    await logActivity({
+      actor: req.user,
+      action: `deleted category "${category?.name}"`,
+      target: "category",
+      targetId: id,
+    });
 
     res.status(200).json({
       status: "success",
@@ -135,6 +161,14 @@ export const editCatogry = async (req, res) => {
         })
       }
 
+      await cacheDelPattern("categories:*");
+      await logActivity({
+        actor: req.user,
+        action: `edited category "${name}"`,
+        target: "category",
+        targetId: id,
+      });
+
       return res.status(202).json({
         status: "Success",
         message: "Edit Successfully"
@@ -144,6 +178,14 @@ export const editCatogry = async (req, res) => {
       const result = await Category.findByIdAndUpdate(id, {
         name
       })
+
+      await cacheDelPattern("categories:*");
+      await logActivity({
+        actor: req.user,
+        action: `edited category "${name}"`,
+        target: "category",
+        targetId: id,
+      });
 
       res.status(202).json({
         status: "Success",

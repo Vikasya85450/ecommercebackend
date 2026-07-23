@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import User from "../models/userModel.js";
 
 
 
@@ -40,6 +41,8 @@ export const isAdmin = async (req, res, next) => {
         message: "Access denied. Admin only.",
       });
     }
+
+    req.user = { ...req.user, name: user.name, role: user.role };
 
     next();
   } catch (error) {

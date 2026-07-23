@@ -3,6 +3,8 @@ import Category from "../models/category.js";
 import Product from "../models/product.js";
 import { getDataUrl } from "../utils/buffer.js";
 import cloudinary from "cloudinary";
+import { logActivity } from "../utils/activityLogger.js";
+import { cacheGet, cacheSet, cacheDelPattern } from "../config/redis.js";
 
 
 
@@ -39,6 +41,14 @@ export const addProduct = async (req, res) => {
       image_id: cloud.public_id,
     })
 
+    await cacheDelPattern("products:*");
+    await logActivity({
+      actor: req.user,
+      action: `added product "${result.title}"`,
+      target: "product",
+      targetId: result._id,
+    });
+
     return res.status(201).json({
       status: true,
       message: "Product Created !!!",
@@ -60,6 +70,15 @@ export const getProduct = async (req, res) => {
   try {
 
     const { id } = req.query;
+    const cacheKey = `products:all:${id || "*"}`;
+
+    const cached = await cacheGet(cacheKey);
+    if (cached) {
+      return res.status(200).json({
+        status: true,
+        result: cached
+      })
+    }
 
     let result;
      if(id){
@@ -68,6 +87,9 @@ export const getProduct = async (req, res) => {
      }else{
       result = await Product.find().populate("category");
      }
+
+    await cacheSet(cacheKey, result, 300);
+
     return res.status(200).json({
       status: true,
       result
@@ -146,6 +168,14 @@ export const deleteProduct = async (req, res) => {
     // ✅ Delete product from DB
     await Product.findByIdAndDelete(req.params.id);
 
+    await cacheDelPattern("products:*");
+    await logActivity({
+      actor: req.user,
+      action: `deleted product "${product.title}"`,
+      target: "product",
+      targetId: product._id,
+    });
+
     res.status(200).json({
       status: "success",
       message: "Product deleted successfully",
@@ -198,6 +228,14 @@ export const updateProduct = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
+
+    await cacheDelPattern("products:*");
+    await logActivity({
+      actor: req.user,
+      action: `edited product "${product.title}"`,
+      target: "product",
+      targetId: product._id,
+    });
 
     res.status(200).json({
       success: true,

@@ -7,10 +7,10 @@ import { isAdmin, isAuthenticated } from '../utils/index.js';
 
 const router = express.Router();
 
-router.post("/product",isAdmin, isAuthenticated,uploadFile,addProduct);
+router.post("/product",isAuthenticated, isAdmin,uploadFile,addProduct);
 router.get("/product/", getProduct);
-router.delete("/product-delete/:id", isAdmin,deleteProduct);
-router.put("/product/:id",isAdmin,isAuthenticated,uploadFile,updateProduct);
+router.delete("/product-delete/:id", isAuthenticated, isAdmin,deleteProduct);
+router.put("/product/:id",isAuthenticated, isAdmin,uploadFile,updateProduct);
 router.get("/product/search", searchproduct);
 router.get("/product/:id", showproduct);
 

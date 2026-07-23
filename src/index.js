@@ -48,6 +48,14 @@ app.use('/api/payment', paymentRouter);
 app.use('/api/admin', adminRouter);
 app.use('/',giftRouter);
 
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Ecommerce API is running 🚀",
+  });
+});
+
 app.get("/health",(req,res)=>{
     res.json({
         message:"Server is Healthy"
